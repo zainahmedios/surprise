@@ -29,8 +29,10 @@
       padding: 24px 16px 32px;
       position: relative;
       overflow: hidden;
+      display: grid;
+      place-items: center;
     }
-    .square, .next-box {
+    .square {
       width: 160px;
       height: 160px;
       margin: 0 auto;
@@ -53,10 +55,8 @@
       text-align: center;
     }
     .square.moved { transform: translateY(60vh); opacity: 0; }
-    .next-box { display: none; }
-    .next-box.show { display: grid; }
 
-    .video-wrap {
+    .video-wrap, .image-wrap {
       position: absolute;
       inset: 0;
       display: grid;
@@ -67,38 +67,65 @@
       transition: opacity 1s ease, transform 1s ease;
       pointer-events: none;
     }
-    .video-wrap.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .video-wrap.show, .image-wrap.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
-    video {
+    video, .image-wrap img {
       max-width: 100%;
-      height: auto;
+      max-height: 70vh;
       border-radius: 20px;
       background: transparent;
-      outline: none;
-      box-shadow: none;
       object-fit: contain;
+      display: block;
+      margin: 0 auto;
     }
+
+    .rsvp-button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    .rsvp-button:active { transform: scale(0.97); }
+
+    /* Layers */
+    .square { z-index: 20; }
+    .video-wrap { z-index: 30; }
+    .image-wrap { z-index: 40; }
   </style>
 </head>
 <body>
   <main class="wrap">
     <div id="square" class="square">Tap Me</div>
-    <div class="next-box" id="nextBox">Click Here</div>
 
     <div class="video-wrap" id="videoWrap">
-      <video id="movie" playsinline preload="metadata">
+      <video id="movie" playsinline preload="auto" poster="">
         <source src="video.mp4" type="video/mp4" />
         Your browser doesn't support HTML5 video.
       </video>
+    </div>
+
+    <div class="image-wrap" id="imageWrap">
+      <div style="text-align:center;">
+        <img src="image.jpg" alt="Event Image" />
+        <br />
+        <button class="rsvp-button" id="rsvpBtn">RSVP</button>
+      </div>
     </div>
   </main>
 
   <script>
     (function(){
       const square = document.getElementById('square');
-      const nextBox = document.getElementById('nextBox');
       const videoWrap = document.getElementById('videoWrap');
       const video = document.getElementById('movie');
+      const imageWrap = document.getElementById('imageWrap');
+      const rsvpBtn = document.getElementById('rsvpBtn');
 
       let started = false;
 
@@ -109,21 +136,27 @@
         videoWrap.classList.add('show');
         square.addEventListener('transitionend', () => square.remove(), {once:true});
 
-        // Try playing with audio (may need user gesture)
         video.muted = false;
         video.controls = false;
         video.play().catch(err => console.log('Play blocked', err));
       }
 
-      // When video ends, hide it and show next box
       video.addEventListener('ended', () => {
+        // Fade out video player
         videoWrap.classList.remove('show');
-        video.remove();
-        nextBox.classList.add('show');
+        setTimeout(() => {
+          video.remove();
+          // Fade in image and button
+          imageWrap.classList.add('show');
+        }, 800);
       });
 
       square.addEventListener('click', revealAndPlay, {passive:true});
       square.addEventListener('touchend', revealAndPlay, {passive:true});
+
+      rsvpBtn.addEventListener('click', () => {
+        window.location.href = 'https://partiful.com/e/mkjgYxBgoSSBgseaCv2n';
+      });
     })();
   </script>
 </body>
