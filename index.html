@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Mobile Slide Demo</title>
+  <title>You're Invited</title>
   <style>
     :root {
       --bg1: #f6f7fb;
@@ -71,7 +71,7 @@
 
     video, .image-wrap img {
       max-width: 100%;
-      max-height: 70vh;
+      max-height: 100vh;
       border-radius: 20px;
       background: transparent;
       object-fit: contain;
@@ -81,7 +81,7 @@
 
     .rsvp-button {
       margin-top: 20px;
-      padding: 12px 24px;
+      padding: 12px 20px;
       background: var(--accent);
       color: white;
       border: none;
@@ -90,6 +90,10 @@
       font-weight: 600;
       cursor: pointer;
       box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      display: block;
+      width: calc(100% - 40px);
+      margin-left: 20px;
+      margin-right: 20px;
     }
     .rsvp-button:active { transform: scale(0.97); }
 
@@ -97,10 +101,13 @@
     .square { z-index: 20; }
     .video-wrap { z-index: 30; }
     .image-wrap { z-index: 40; }
+    /* Snow canvas (background) */
+    #snow { position:absolute; inset:0; z-index: 10; pointer-events:none; }
   </style>
 </head>
 <body>
   <main class="wrap">
+    <canvas id="snow"></canvas>
     <div id="square" class="square">Tap Me</div>
 
     <div class="video-wrap" id="videoWrap">
@@ -126,8 +133,58 @@
       const video = document.getElementById('movie');
       const imageWrap = document.getElementById('imageWrap');
       const rsvpBtn = document.getElementById('rsvpBtn');
+      const snowCanvas = document.getElementById('snow');
+      const sctx = snowCanvas.getContext('2d');
 
       let started = false;
+
+      // ===== Snowflakes =====
+      let flakes = [];
+      let snowW = 0, snowH = 0;
+
+      function resizeSnow(){
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        snowW = snowCanvas.clientWidth; snowH = snowCanvas.clientHeight;
+        snowCanvas.width = Math.floor(snowW * dpr);
+        snowCanvas.height = Math.floor(snowH * dpr);
+        sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function makeFlakes(count){
+        flakes = new Array(count).fill(0).map(()=>({
+          x: Math.random() * snowW,
+          y: Math.random() * snowH,
+          r: 1 + Math.random()*2.2,
+          s: 0.6 + Math.random()*1.1,
+          w: 0.5 + Math.random()*1.2,
+          p: Math.random()*Math.PI*2
+        }));
+      }
+
+      function drawSnow(t){
+        sctx.clearRect(0,0,snowW,snowH);
+        const time = (t||0)/1000;
+        sctx.fillStyle = 'rgba(255,255,255,0.85)';
+        for (let f of flakes){
+          const sway = Math.sin(time*0.8 + f.p) * f.w;
+          f.y += f.s;
+          f.x += sway*0.2;
+          if (f.y > snowH + 5){ f.y = -5; f.x = Math.random()*snowW; }
+          if (f.x < -5) f.x = snowW + 5; else if (f.x > snowW + 5) f.x = -5;
+          sctx.beginPath();
+          sctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+          sctx.fill();
+        }
+        requestAnimationFrame(drawSnow);
+      }
+
+      function initSnow(){
+        resizeSnow();
+        makeFlakes(Math.max(60, Math.floor(snowW * snowH / 25000)));
+        requestAnimationFrame(drawSnow);
+      }
+      window.addEventListener('resize', ()=>{ resizeSnow(); makeFlakes(flakes.length); });
+      initSnow();
 
       function revealAndPlay(){
         if(started) return;
@@ -142,11 +199,9 @@
       }
 
       video.addEventListener('ended', () => {
-        // Fade out video player
         videoWrap.classList.remove('show');
         setTimeout(() => {
           video.remove();
-          // Fade in image and button
           imageWrap.classList.add('show');
         }, 800);
       });
