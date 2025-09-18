@@ -6,39 +6,31 @@
   <title>Mobile Slide Demo</title>
   <style>
     :root {
-      /* Pastel, gender-neutral palette */
-      --bg1: #f6f7fb;   /* soft off-white */
-      --bg2: #eef3ff;   /* pale lavender */
-      --card: #ffffff;  /* white card */
-      --border: #e6e9f2;/* soft gray-blue */
-      --accent: #b8c0ff;/* pastel periwinkle */
-      --text: #2f3441;  /* readable dark slate */
+      --bg1: #f6f7fb;
+      --bg2: #eef3ff;
+      --card: #ffffff;
+      --border: #e6e9f2;
+      --accent: #b8c0ff;
+      --text: #2f3441;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       background: radial-gradient(80% 60% at 50% 0%, var(--bg2) 0%, var(--bg1) 60%);
       color: var(--text);
       display: grid;
       place-items: center;
     }
-
     .wrap {
       width: min(600px, 100vw);
       height: 100vh;
       padding: 24px 16px 32px;
-      display: grid;
-      grid-template-rows: 1fr auto;
-      gap: 16px;
-      align-items: end;
       position: relative;
       overflow: hidden;
     }
-
-    /* Square button */
-    .square {
+    .square, .next-box {
       width: 160px;
       height: 160px;
       margin: 0 auto;
@@ -52,106 +44,86 @@
       letter-spacing: 0.4px;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 10px 30px rgba(31, 41, 55, 0.08);
+      box-shadow: 0 10px 30px rgba(31,41,55,0.08);
       transform: translateY(0);
       transition: transform 1.8s cubic-bezier(.22,1,.36,1), opacity 1.2s ease;
       cursor: pointer;
       position: absolute;
       top: 20vh; left: 0; right: 0;
+      text-align: center;
     }
-    .square:active { transform: scale(0.98); }
-    /* Slide down AND fade out so it disappears */
     .square.moved { transform: translateY(60vh); opacity: 0; }
+    .next-box { display: none; }
+    .next-box.show { display: grid; }
 
-    /* Hint text */
-    .hint { text-align: center; opacity: .7; font-size: 0.9rem; }
-
-    /* Video container */
     .video-wrap {
       position: absolute;
-      inset: 0 0 0 0;
+      inset: 0;
       display: grid;
       place-items: center;
       padding: 16px;
       opacity: 0;
       transform: translateY(10px);
       transition: opacity 1s ease, transform 1s ease;
-      pointer-events: none; /* prevent clicks before shown */
+      pointer-events: none;
     }
     .video-wrap.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
-    /* Keep video nicely sized for mobile */
     video {
-      width: 100%;
-      max-height: 70vh;
+      max-width: 100%;
+      height: auto;
       border-radius: 20px;
-      background: #000;
+      background: transparent;
       outline: none;
-      box-shadow: 0 20px 50px rgba(31, 41, 55, 0.15);
-    }
-
-    /* Safe-area padding for iOS notch */
-    @supports(padding:max(0px)) {
-      .wrap { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+      box-shadow: none;
+      object-fit: contain;
     }
   </style>
 </head>
 <body>
   <main class="wrap">
-    <div id="square" class="square" role="button" aria-label="Tap to play video">Tap Me</div>
+    <div id="square" class="square">Tap Me</div>
+    <div class="next-box" id="nextBox">Click Here</div>
 
-    <div class="video-wrap" id="videoWrap" aria-live="polite">
-      <video id="movie" playsinline autoplay muted controls preload="metadata" poster="" crossorigin>
+    <div class="video-wrap" id="videoWrap">
+      <video id="movie" playsinline preload="metadata">
         <source src="video.mp4" type="video/mp4" />
-        <!-- Fallback text -->
-        Your browser doesn't support HTML5 video. Here is a
-        <a href="video.mp4">link to the video</a> instead.
+        Your browser doesn't support HTML5 video.
       </video>
-      <p class="hint">Video should auto‑start muted for mobile. Tap the volume icon or unmute after it appears.</p>
     </div>
   </main>
 
   <script>
-    (function () {
+    (function(){
       const square = document.getElementById('square');
+      const nextBox = document.getElementById('nextBox');
       const videoWrap = document.getElementById('videoWrap');
       const video = document.getElementById('movie');
 
       let started = false;
 
-      // Try to auto-start on load (muted to satisfy autoplay policies)
-      const tryAutoplay = async () => {
-        try {
-          video.muted = true; // ensure muted for autoplay
-          await video.play();
-        } catch (e) {
-          console.log('Autoplay blocked until interaction');
-        }
-      };
-      if (document.readyState === 'complete') tryAutoplay();
-      else window.addEventListener('load', tryAutoplay, { once: true });
-
-      function revealAndPlay() {
-        if (started) return;
+      function revealAndPlay(){
+        if(started) return;
         started = true;
         square.classList.add('moved');
         videoWrap.classList.add('show');
-        // Remove the square from the DOM after its transition so it "disappears"
-        square.addEventListener('transitionend', () => square.remove(), { once: true });
+        square.addEventListener('transitionend', () => square.remove(), {once:true});
 
-        // Ensure playback is running; if paused, play again (some browsers need interaction)
-        const ensurePlay = async () => {
-          try {
-            if (video.paused) await video.play();
-          } catch (err) {
-            console.log('Playback still blocked, user can press play');
-          }
-        };
-        setTimeout(ensurePlay, 150);
+        // Try playing with audio (may need user gesture)
+        video.muted = false;
+        video.controls = false;
+        video.play().catch(err => console.log('Play blocked', err));
       }
 
-      square.addEventListener('click', revealAndPlay, { passive: true });
-      square.addEventListener('touchend', revealAndPlay, { passive: true });
+      // When video ends, hide it and show next box
+      video.addEventListener('ended', () => {
+        videoWrap.classList.remove('show');
+        video.remove();
+        nextBox.classList.add('show');
+      });
+
+      square.addEventListener('click', revealAndPlay, {passive:true});
+      square.addEventListener('touchend', revealAndPlay, {passive:true});
     })();
   </script>
 </body>
