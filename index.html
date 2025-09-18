@@ -8,7 +8,7 @@
     />
     <title>Mobile Slide Demo</title>
 
-    <!-- Tailwind (CDN) for quick styling -->
+    <!-- Tailwind (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- React + ReactDOM (UMD) -->
@@ -18,18 +18,18 @@
     <!-- Framer Motion (UMD) -->
     <script src="https://unpkg.com/framer-motion/dist/framer-motion.umd.js"></script>
 
-    <!-- Babel so we can write JSX right in this file -->
+    <!-- Babel (compile JSX in-browser) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-      /* Make the viewport behave nicely on mobile */
       html, body, #root { height: 100%; margin: 0; }
     </style>
   </head>
   <body class="bg-gradient-to-b from-emerald-50 via-sky-50 to-yellow-50">
     <div id="root"></div>
 
-    <script type="text/babel">
+    <!-- Your app code -->
+    <script type="text/babel" data-presets="env,react">
       const { useState, useRef, useEffect } = React;
       const { motion, AnimatePresence } = window.framerMotion;
 
