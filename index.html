@@ -1,195 +1,161 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tap → Reveal Video</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Mobile Slide Demo</title>
   <style>
     :root {
-      --bg: #0f1115;
-      --fg: #e8e8ea;
-      --accent: #5b8cff;
-      --square-size: 38vmin; /* responsive for mobile */
-      --transition: 900ms cubic-bezier(.22,.61,.36,1);
+      /* Pastel, gender-neutral palette */
+      --bg1: #f6f7fb;   /* soft off-white */
+      --bg2: #eef3ff;   /* pale lavender */
+      --card: #ffffff;  /* white card */
+      --border: #e6e9f2;/* soft gray-blue */
+      --accent: #b8c0ff;/* pastel periwinkle */
+      --text: #2f3441;  /* readable dark slate */
     }
-    html, body {
-      height: 100%;
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
       margin: 0;
-      background: radial-gradient(1200px 800px at 50% -10%, #1a1f2b 0%, #0f1115 60%);
-      color: var(--fg);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
+      background: radial-gradient(80% 60% at 50% 0%, var(--bg2) 0%, var(--bg1) 60%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
     }
+
     .wrap {
-      min-height: 100svh; /* mobile safe viewport */
+      width: min(600px, 100vw);
+      height: 100vh;
+      padding: 24px 16px 32px;
       display: grid;
       grid-template-rows: 1fr auto;
-      place-items: center;
-      padding: 16px;
-    }
-    .stage {
-      width: 100%;
-      max-width: 720px;
-      display: grid;
-      place-items: center;
-      gap: 20px;
+      gap: 16px;
+      align-items: end;
+      position: relative;
+      overflow: hidden;
     }
 
-    /* The tappable square */
+    /* Square button */
     .square {
-      width: var(--square-size);
-      height: var(--square-size);
+      width: 160px;
+      height: 160px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #f2f5ff, var(--card));
+      border: 2px solid var(--border);
+      border-radius: 20px;
       display: grid;
       place-items: center;
-      background: linear-gradient(180deg, #1e2637, #111827);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 18px;
-      box-shadow: 0 20px 50px rgba(0,0,0,.45);
+      color: var(--text);
+      font-weight: 700;
+      letter-spacing: 0.4px;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
-      cursor: pointer;
-      transition: transform var(--transition), opacity var(--transition);
-    }
-    .square:active {
-      transform: translateY(2px) scale(.995);
-    }
-    .label {
-      font-size: clamp(16px, 5vmin, 28px);
-      font-weight: 600;
-      letter-spacing: .3px;
-      color: var(--fg);
-    }
-
-    /* Slide down on tap */
-    .slide-down {
-      transform: translateY(60vh);
-      opacity: 0;
-    }
-
-    /* Video area */
-    .video-wrap {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      max-width: 720px;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,.08);
-      box-shadow: 0 18px 40px rgba(0,0,0,.45);
-      opacity: 0;
-      transform: translateY(12px);
-      transition: opacity var(--transition), transform var(--transition);
-      display: none; /* hidden until tap */
-      background: #000;
-    }
-    .video-wrap.revealed {
-      display: block;
-      opacity: 1;
+      box-shadow: 0 10px 30px rgba(31, 41, 55, 0.08);
       transform: translateY(0);
+      transition: transform 1.8s cubic-bezier(.22,1,.36,1), opacity 1.2s ease;
+      cursor: pointer;
+      position: absolute;
+      top: 20vh; left: 0; right: 0;
     }
+    .square:active { transform: scale(0.98); }
+    /* Slide down AND fade out so it disappears */
+    .square.moved { transform: translateY(60vh); opacity: 0; }
+
+    /* Hint text */
+    .hint { text-align: center; opacity: .7; font-size: 0.9rem; }
+
+    /* Video container */
+    .video-wrap {
+      position: absolute;
+      inset: 0 0 0 0;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 1s ease, transform 1s ease;
+      pointer-events: none; /* prevent clicks before shown */
+    }
+    .video-wrap.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    /* Keep video nicely sized for mobile */
     video {
       width: 100%;
-      height: 100%;
-      display: block;
+      max-height: 70vh;
+      border-radius: 20px;
       background: #000;
+      outline: none;
+      box-shadow: 0 20px 50px rgba(31, 41, 55, 0.15);
     }
 
-    footer {
-      opacity: .7;
-      font-size: 12px;
-      text-align: center;
+    /* Safe-area padding for iOS notch */
+    @supports(padding:max(0px)) {
+      .wrap { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); padding-bottom: max(24px, env(safe-area-inset-bottom)); }
     }
-    a, a:visited { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <main class="wrap">
-    <section class="stage">
-      <div id="tapSquare" class="square" role="button" aria-label="Tap to reveal video">
-        <span class="label">Tap Me</span>
-      </div>
+    <div id="square" class="square" role="button" aria-label="Tap to play video">Tap Me</div>
 
-      <div id="vidWrap" class="video-wrap" aria-live="polite">
-        <video
-          id="video"
-          playsinline
-          controls
-          preload="none"
-          muted
-          poster=""
-        >
-          <!-- Use HTTPS to avoid mixed-content issues on GitHub Pages -->
-          <source
-            src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-            type="video/mp4"
-          />
-          Your browser does not support the video tag.
-        </video>
-      </div>
-    </section>
-
-    <footer>
-      Tip: If autoplay doesn’t kick in on mobile, tap the play button.
-    </footer>
+    <div class="video-wrap" id="videoWrap" aria-live="polite">
+      <!-- Use HTTPS + autoplay-friendly attributes -->
+      <video id="movie" playsinline autoplay muted controls preload="metadata" poster="" crossorigin>
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
+        <!-- Fallback text -->
+        Your browser doesn't support HTML5 video. Here is a
+        <a href="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4">link to the video</a> instead.
+      </video>
+      <p class="hint">Video should auto‑start muted for mobile. Tap the volume icon or unmute after it appears.</p>
+    </div>
   </main>
 
   <script>
     (function () {
-      const square = document.getElementById('tapSquare');
-      const vidWrap = document.getElementById('vidWrap');
-      const video = document.getElementById('video');
+      const square = document.getElementById('square');
+      const videoWrap = document.getElementById('videoWrap');
+      const video = document.getElementById('movie');
 
-      let revealed = false;
+      let started = false;
+
+      // Try to auto-start on load (muted to satisfy autoplay policies)
+      const tryAutoplay = async () => {
+        try {
+          video.muted = true; // ensure muted for autoplay
+          await video.play();
+        } catch (e) {
+          // If blocked, it will still start once user taps the square
+          console.log('Autoplay blocked until interaction');
+        }
+      };
+      // Kick off as soon as possible
+      if (document.readyState === 'complete') tryAutoplay();
+      else window.addEventListener('load', tryAutoplay, { once: true });
 
       function revealAndPlay() {
-        if (revealed) return;
-        revealed = true;
+        if (started) return;
+        started = true;
+        square.classList.add('moved');
+        videoWrap.classList.add('show');
+        // Remove the square from the DOM after its transition so it "disappears"
+        square.addEventListener('transitionend', () => square.remove(), { once: true });
 
-        // Slide the square down
-        square.classList.add('slide-down');
-
-        // Show the video container right away (fade in via CSS)
-        vidWrap.classList.add('revealed');
-
-        // Once the square finishes its slide, remove it from flow for accessibility/scroll
-        square.addEventListener('transitionend', () => {
-          square.style.display = 'none';
-        }, { once: true });
-
-        // Attempt to autoplay after a user gesture
-        // Some mobile browsers require muted + user gesture; we have both.
-        const tryPlay = () => {
-          const p = video.play();
-          if (p && typeof p.then === 'function') {
-            p.catch(() => {
-              // If autoplay is blocked, keep controls visible for manual play.
-            });
+        // Ensure playback is running; if paused, play again (some browsers need interaction)
+        const ensurePlay = async () => {
+          try {
+            if (video.paused) await video.play();
+          } catch (err) {
+            // As a last resort, keep it muted and rely on user pressing play
+            console.log('Playback still blocked, user can press play');
           }
         };
-
-        // Ensure the source is set (good habit if you ever swap sources)
-        const sourceEl = video.querySelector('source');
-        if (!sourceEl || !sourceEl.src) {
-          // Fallback: set the HTTPS source directly if missing
-          video.src = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-        }
-
-        // Make sure the element is display:block before playing (it is once revealed)
-        // Small timeout helps some mobile browsers after layout changes
-        setTimeout(tryPlay, 50);
+        setTimeout(ensurePlay, 150);
       }
 
-      // Show the video container (display: block) the moment we’re about to reveal
-      const observer = new MutationObserver(() => {
-        if (vidWrap.style.display !== 'block') {
-          vidWrap.style.display = 'block';
-        }
-      });
-      observer.observe(vidWrap, { attributes: true, attributeFilter: ['class'] });
-
       square.addEventListener('click', revealAndPlay, { passive: true });
-      square.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') revealAndPlay();
-      });
+      square.addEventListener('touchend', revealAndPlay, { passive: true });
     })();
   </script>
 </body>
