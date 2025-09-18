@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Mobile Slide Demo</title>
+  <title>Surprise</title>
   <style>
     :root {
       /* Pastel, gender-neutral palette */
@@ -101,12 +101,11 @@
     <div id="square" class="square" role="button" aria-label="Tap to play video">Tap Me</div>
 
     <div class="video-wrap" id="videoWrap" aria-live="polite">
-      <!-- Use HTTPS + autoplay-friendly attributes -->
       <video id="movie" playsinline autoplay muted controls preload="metadata" poster="" crossorigin>
-        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
+        <source src="video.mp4" type="video/mp4" />
         <!-- Fallback text -->
         Your browser doesn't support HTML5 video. Here is a
-        <a href="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4">link to the video</a> instead.
+        <a href="video.mp4">link to the video</a> instead.
       </video>
       <p class="hint">Video should auto‑start muted for mobile. Tap the volume icon or unmute after it appears.</p>
     </div>
@@ -126,11 +125,9 @@
           video.muted = true; // ensure muted for autoplay
           await video.play();
         } catch (e) {
-          // If blocked, it will still start once user taps the square
           console.log('Autoplay blocked until interaction');
         }
       };
-      // Kick off as soon as possible
       if (document.readyState === 'complete') tryAutoplay();
       else window.addEventListener('load', tryAutoplay, { once: true });
 
@@ -147,7 +144,6 @@
           try {
             if (video.paused) await video.play();
           } catch (err) {
-            // As a last resort, keep it muted and rely on user pressing play
             console.log('Playback still blocked, user can press play');
           }
         };
