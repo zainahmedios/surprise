@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta property="og:image" content="invited.jpg" />
   <title>You're Invited</title>
   <style>
     :root {
@@ -59,8 +60,9 @@
     .video-wrap, .image-wrap {
       position: absolute;
       inset: 0;
-      display: grid;
-      place-items: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       padding: 16px;
       opacity: 0;
       transform: translateY(10px);
@@ -102,7 +104,7 @@
     .video-wrap { z-index: 30; }
     .image-wrap { z-index: 40; }
     /* Snow canvas (background) */
-    #snow { position:absolute; inset:0; z-index: 10; pointer-events:none; }
+    #snow { position:fixed; top:0; left:0; width:100vw; height:100vh; z-index: 10; pointer-events:none; }
   </style>
 </head>
 <body>
@@ -111,7 +113,7 @@
     <div id="square" class="square">Tap Me</div>
 
     <div class="video-wrap" id="videoWrap">
-      <video id="movie" playsinline preload="auto" poster="">
+      <video id="movie" playsinline preload="auto">
         <source src="video.mp4" type="video/mp4" />
         Your browser doesn't support HTML5 video.
       </video>
